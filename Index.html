@@ -1,0 +1,1155 @@
+<!DOCTYPE html>
+<html lang="fr" dir="ltr">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>POINTAGE PRO</title>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
+    <style>
+        :root {
+            /* THÈME MAT & ROUGH (Light) */
+            --primary: #546e7a;       
+            --primary-dark: #37474f;  
+            --warning: #8d6e63;       
+            --success: #558b2f;       
+            --info: #3949ab;          
+            --transport: #00838f;     
+            --rendement: #5e35b1;     
+            
+            --bg: #eceff1;            
+            --card: #ffffff;          
+            --text: #263238;          
+            --text-muted: #546e7a;
+            
+            --border: #b0bec5;        
+            --input-bg: #f5f5f5;      
+            --danger: #c62828;        
+            
+            --shadow: 0 1px 3px rgba(0,0,0,0.12);
+            --header-input-bg: #e3f2fd;
+        }
+
+        [data-theme="dark"] {
+            /* THÈME MAT & ROUGH (Dark - High Contrast Text) */
+            --primary: #90a4ae;
+            --primary-dark: #263238;
+            --warning: #a1887f;
+            --success: #689f38;
+            --info: #7986cb;
+            --transport: #4dd0e1;
+            --rendement: #9575cd;
+            
+            --bg: #121212;
+            --card: #1e1e1e;
+            --text: #ffffff;          
+            --text-muted: #b0bec5;
+            
+            --border: #546e7a;
+            --input-bg: #2c2c2c;
+            --danger: #ef5350;
+            
+            --shadow: 0 3px 6px rgba(0,0,0,0.5);
+            --header-input-bg: #37474f;
+        }
+
+        body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 0; padding-bottom: 80px; transition: background 0.3s, color 0.3s; }
+        
+        /* Force White Text in Dark Mode Inputs */
+        [data-theme="dark"] input, [data-theme="dark"] select, [data-theme="dark"] textarea { color: #ffffff !important; background-color: #2c2c2c !important; border-color: #546e7a !important; }
+
+        /* HEADER */
+        header { background: var(--primary-dark); color: #ffffff; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow); border-bottom: 1px solid var(--border); }
+        header.half-day-mode { background: var(--warning); }
+        .app-title { font-weight: 900; font-size: 1.1em; letter-spacing: 1px; text-transform: uppercase; }
+        .hamburger { font-size: 24px; cursor: pointer; padding: 5px; }
+
+        /* HEADER INFO CONTAINER */
+        .header-info-container { background: var(--card); padding: 10px; margin: 10px auto; max-width: 600px; border-radius: 6px; box-shadow: var(--shadow); border: 1px solid var(--border); text-align: center; }
+        .header-display { cursor: pointer; padding: 5px; border-radius: 4px; }
+        .header-display:hover { background: var(--input-bg); }
+        .header-display h2 { margin: 0; color: var(--primary); text-transform: uppercase; font-weight: 900; font-size: 1.2em; }
+        .header-display p { margin: 2px 0 0 0; color: var(--text-muted); font-weight: 600; font-size: 0.85em; }
+        .header-edit-mode { display: none; flex-direction: column; gap: 8px; }
+        .header-info-row { display: flex; gap: 8px; }
+        .header-input { width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 4px; background: var(--header-input-bg); font-size: 0.9em; text-align: center; font-weight: 700; color:#333 !important;}
+
+        /* SIDEBAR */
+        #side-menu { height: 100%; width: 0; position: fixed; z-index: 200; top: 0; left: 0; background-color: #212121; overflow-x: hidden; transition: 0.3s; padding-top: 60px; display: flex; flex-direction: column; border-right: 1px solid var(--border); }
+        .closebtn { position: absolute; top: 10px; right: 20px; font-size: 36px; color: #fff; background:none; border:none; cursor:pointer;}
+        .menu-btn { padding: 15px 20px; text-decoration: none; font-size: 15px; color: #cfd8dc; display: block; border-bottom: 1px solid rgba(255,255,255,0.1); text-align: left; background: none; border: none; width: 100%; cursor: pointer; transition: 0.2s; font-weight: 600; }
+        .menu-section-title { color: var(--primary); font-size: 0.8em; padding: 20px 20px 5px; text-transform: uppercase; font-weight: 900; letter-spacing: 1px; }
+
+        /* VIEWS */
+        .view-container { display: none; padding: 10px; max-width: 600px; margin: 0 auto; }
+        .view-container.active { display: block; animation: fadeIn 0.2s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: translateY(0); } }
+
+        .section-card { background: var(--card); border-radius: 6px; padding: 12px; margin-bottom: 15px; box-shadow: var(--shadow); border: 1px solid var(--border); }
+        h3 { margin-top: 0; border-bottom: 1px solid var(--border); padding-bottom: 5px; color: var(--text); font-size: 1em; font-weight: 800; text-transform: uppercase; }
+        h4 { margin: 10px 0 5px 0; font-size: 0.85em; color: var(--primary); text-transform: uppercase; font-weight: 800; }
+
+        /* INPUTS */
+        .inputs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .input-group { margin-bottom: 5px; }
+        .input-group label { display: block; font-weight: 700; color: var(--text-muted); font-size: 0.75em; margin-bottom: 2px; text-transform: uppercase; }
+        .input-group input { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 4px; text-align: center; font-weight: 800; font-size: 1.1em; background: var(--input-bg); box-sizing: border-box; }
+        .input-group input:focus { border-color: var(--primary); outline: none; }
+
+        /* --- COMPACT TEAM CARD --- */
+        .team-card { border: 1px solid var(--border); border-radius: 6px; margin-bottom: 12px; background: var(--card); overflow: hidden; position: relative; }
+        .team-card.maroc { border-left: 5px solid var(--primary); }
+        .team-card.africain { border-left: 5px solid var(--secondary); }
+        
+        .team-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; background: rgba(0,0,0,0.02); border-bottom: 1px solid var(--border); }
+        .team-title-row { display: flex; align-items: center; gap: 8px; }
+        .team-name-text { font-weight: 900; font-size: 1em; color: var(--text); text-transform: uppercase; }
+        .count-badge { background: var(--secondary); color: white; padding: 1px 6px; border-radius: 8px; font-size: 0.85em; font-weight: bold; min-width: 20px; text-align: center; }
+        
+        .team-actions { display: flex; gap: 12px; }
+        .action-icon { cursor: pointer; font-size: 1.1em; opacity: 0.8; transition: 0.2s; font-weight:bold; }
+        .edit-icon { color: var(--primary); }
+        .delete-icon { color: var(--danger); }
+
+        /* Info Display (Text Only - Compact) */
+        .team-info-display { padding: 6px 10px; font-size: 0.8em; color: var(--text-muted); border-bottom: 1px solid var(--border); display: flex; flex-wrap: wrap; gap: 10px; align-items: center; background: var(--input-bg); }
+        .info-bit { display: flex; align-items: center; gap: 4px; font-weight: 700; color: var(--text); }
+        .info-label { font-weight: normal; color: var(--text-muted); font-size: 0.9em; margin-right: 2px;}
+
+        /* Edit Form */
+        .team-edit-form { display: none; padding: 10px; background: var(--bg); border-bottom: 1px solid var(--border); }
+        .edit-row { display: flex; gap: 8px; margin-bottom: 8px; }
+        .edit-input { flex: 1; padding: 6px; border: 1px solid var(--border); border-radius: 4px; font-size: 0.9em; font-weight: 600; text-align: center; background: var(--card); }
+        
+        .op-row { display: flex; justify-content: space-between; align-items: center; background: var(--card); padding: 6px 10px; border-bottom: 1px solid #eee; }
+        .op-input { width: 40px; padding: 3px; text-align: center; border: 1px solid var(--border); border-radius: 4px; font-weight: bold; color: var(--primary); font-size: 0.95em; background: var(--input-bg); }
+        .op-delete { color: var(--danger); margin-left: 8px; cursor: pointer; font-weight: 900; }
+        .team-group-title { background: var(--border); color: var(--primary-dark); padding: 5px 10px; border-radius: 4px; font-size: 0.85em; font-weight: 900; margin: 15px 0 8px 0; text-transform: uppercase; }
+        
+        .btn { padding: 10px; border-radius: 4px; border: none; font-weight: 800; width: 100%; cursor: pointer; margin-top: 5px; font-size: 0.9em; text-transform: uppercase; }
+        .btn-add { background: transparent; color: var(--text-muted); border: 2px dashed var(--border); margin: 5px; width: calc(100% - 10px); }
+        .btn-primary { background: var(--primary); color: white; margin-top: 10px;}
+        .btn-warning { background: var(--warning); color: white; }
+        .btn-transfer { background: var(--secondary); color: white; box-shadow: var(--shadow); }
+        .btn-etranger { background: var(--info); color: white; box-shadow: var(--shadow); }
+        
+        .time-inputs { display: flex; gap: 5px; padding: 5px; background: rgba(0,0,0,0.03); }
+        .time-inputs input { width: 100%; border: 1px solid var(--border); padding: 4px; border-radius: 4px; text-align:center; }
+        .duration-badge { background: var(--warning); color: white; padding: 1px 6px; border-radius: 6px; font-size: 0.75em; font-weight: bold; margin-left: 5px; }
+        
+        /* STATS PANEL */
+        .stats-panel { background: var(--card); color: var(--text); padding: 0; margin-bottom: 15px; border-radius: 8px; overflow: hidden; box-shadow: var(--shadow); cursor: pointer; border: 1px solid var(--border); }
+        .stats-header { padding: 8px; text-align: center; color: #fff; font-weight: 900; letter-spacing: 1px; text-transform: uppercase; font-size: 0.95em; }
+        .stats-body { padding: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: var(--card); }
+        .stat-col h5 { color: var(--text-muted); border-bottom: 1px solid var(--border); margin: 0 0 8px 0; padding-bottom: 4px; font-size: 0.85em; font-weight: 700; }
+        .stat-row { display: flex; justify-content: space-between; font-size: 0.9em; margin-bottom: 5px; color: var(--text); }
+        .stat-row span:last-child { font-weight: bold; }
+        .stat-subtotal { border-top: 1px dashed var(--border); margin-top: 5px; padding-top: 5px; font-weight: 800; color: var(--primary); }
+        .stat-grand { padding: 10px; text-align: center; font-size: 1.1em; font-weight: 900; color: #ffffff; }
+        
+        .ops-breakdown { font-size: 0.85em; margin-top: 10px; border-top: 1px solid var(--border); padding-top: 5px; color: var(--text-muted); }
+        .ops-breakdown div { display: flex; justify-content: space-between; padding: 2px 0; border-bottom: 1px solid #eee; }
+        
+        .main-ops-list div { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); color: var(--text); font-weight: 600; font-size: 0.9em; }
+        .mov-item { background: var(--input-bg); color: var(--text); border: 1px solid var(--border); padding: 8px; border-radius: 4px; margin-bottom: 5px; font-size: 0.85em; font-weight: 700; display: flex; justify-content: space-between; align-items: center; }
+        
+        .modal { display: none; position: fixed; z-index: 300; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); backdrop-filter: blur(4px); }
+        .modal-content { background: var(--card); color: var(--text); margin: 10% auto; padding: 20px; width: 90%; max-width: 600px; border-radius: 8px; border: 1px solid var(--border); }
+        #search-box, .modal-select { width: 100%; padding: 10px; border: 2px solid var(--primary); border-radius: 6px; font-size: 1em; background: var(--input-bg); color: var(--text); box-sizing: border-box; margin-bottom: 10px; font-weight: 600; }
+        #search-results { max-height: 200px; overflow-y: auto; border: 1px solid var(--border); border-radius: 4px; margin-bottom: 10px; background: var(--input-bg); }
+        .search-item { padding: 10px; border-bottom: 1px solid var(--border); cursor: pointer; transition: 0.2s; font-weight: 600; }
+        .search-item:hover { background: var(--primary); color: white; }
+        #op-qty-container { display: none; margin-top: 15px; padding-top: 15px; border-top: 2px solid var(--border); }
+
+        .hd-sum-list { list-style: none; padding: 0; margin: 0; }
+        .hd-sum-item { padding: 8px; border-bottom: 1px solid var(--border); color: var(--text); display: flex; justify-content: space-between; font-size: 0.9em; background: transparent; }
+        .hd-sum-data { color: var(--text); font-weight: 800; }
+        .hd-footer-stats { display: flex; flex-wrap: wrap; justify-content: space-around; margin-top: 5px; padding-top: 5px; border-top: 1px dashed var(--border); font-size: 0.8em; color: var(--text-muted); }
+        .hd-sum-group-title { background: var(--border); padding: 5px; color: var(--text); font-size: 0.8em; font-weight: 900; text-transform: uppercase; text-align: center; }
+
+        .rendement-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; border-bottom: 1px dashed var(--border); padding-bottom: 4px; }
+        .rendement-label { font-weight: bold; color: var(--text); font-size: 1em; }
+        .rendement-input { width: 80px; padding: 6px; border: 1px solid var(--border); text-align: center; font-weight: bold; background: var(--input-bg); color: var(--text); border-radius: 4px; }
+        .global-input-container { background: var(--rendement); padding: 15px; border-radius: 8px; color: white; text-align: center; margin-bottom: 15px; box-shadow: var(--shadow); }
+        .global-input-container label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 1em; color: white; }
+        .global-input-container input { width: 120px; font-size: 1.3em; padding: 8px; border-radius: 6px; border: none; text-align: center; color: #333; background: #fff !important; }
+
+        #copyright-footer { position: fixed; bottom: 0; left: 0; width: 100%; text-align: center; padding: 4px; background: rgba(0,0,0,0.6); color: #fff; font-size: 10px; font-weight: bold; z-index: 9999; pointer-events: none; }
+
+        /* Report */
+        .report-wrapper { font-family: 'Segoe UI', sans-serif; background: #fff; color: #333; padding: 20px; border: 1px solid #ccc; width: 750px; }
+        .rep-header { text-align: center; border-bottom: 2px solid #2c3e50; padding-bottom: 10px; margin-bottom: 15px; }
+        .rep-header h2 { margin: 0; font-size: 22px; text-transform: uppercase; color: #2c3e50; }
+        .rep-header p { margin: 2px 0; color: #666; font-size: 12px; }
+        .rep-top-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        .rep-box { border: 1px solid #ccc; border-radius: 4px; overflow: hidden; }
+        .rep-box-title { background: #2c3e50; color: #fff; font-size: 11px; font-weight: bold; padding: 4px 8px; text-transform: uppercase; }
+        .rep-box-content { padding: 8px; font-size: 11px; }
+        .rep-table { width: 100%; border-collapse: collapse; font-size: 10px; }
+        .rep-table td { padding: 3px 0; border-bottom: 1px solid #eee; }
+        .rep-table tr:last-child td { border-bottom: none; font-weight: bold; }
+        .rep-val { float: right; font-weight: bold; }
+        .rep-hr-group { margin-bottom: 5px; border-bottom: 1px dashed #ddd; padding-bottom: 3px; }
+        .rep-hr-label { font-weight: bold; color: #d35400; font-size: 10px; margin-bottom: 2px; }
+        .rep-hr-list { margin: 0; padding: 0; list-style: none; font-size: 10px; color: #555; }
+        .rep-ops-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; font-size: 10px; margin-bottom: 15px; }
+        .rep-ops-item { background: #f8f9fa; padding: 4px; border: 1px solid #eee; display: flex; justify-content: space-between; font-weight: 500; }
+        .rep-trans-title { background: #7f8c8d; color: #fff; padding: 5px; font-size: 12px; font-weight: bold; text-align: center; margin-top: 10px; margin-bottom: 5px; }
+        .rep-trans-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; } 
+        .rep-team-card { border: 1px solid #bdc3c7; padding: 4px; border-radius: 3px; background: #fdfdfd; font-size: 9px; }
+        .rep-team-name { font-weight: bold; color: #2c3e50; border-bottom: 1px solid #eee; margin-bottom: 2px; padding-bottom: 1px; display: flex; justify-content: space-between;}
+        .rep-team-detail { color: #666; font-size: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
+        .rep-footer { text-align: center; font-size: 9px; color: #999; margin-top: 20px; border-top: 1px solid #eee; padding-top: 5px; }
+
+        #export-container { position: absolute; top: -9999px; left: -9999px; }
+        #temp-download-container { position: absolute; top: -9999px; left: -9999px; width: 600px; background: var(--bg); padding: 20px; text-align: center; }
+    </style>
+</head>
+<body>
+    <datalist id="vehicle-list">
+        <option value="Grand Taxi"></option><option value="Minibus (Sprinter)"></option><option value="Autocar"></option><option value="Pick-up (Toyota)"></option><option value="Pick-up (Isuzu)"></option><option value="Pick-up (Mitsubishi)"></option><option value="Transit (Ford)"></option><option value="C15"></option><option value="Berlingo"></option><option value="Partner"></option><option value="Honda"></option><option value="Triporteur"></option><option value="Camion"></option><option value="Voiture Personnel"></option><option value="Autre"></option>
+    </datalist>
+    <datalist id="location-list"></datalist>
+
+    <header id="main-header">
+        <span class="hamburger" onclick="openNav()">&#9776;</span>
+        <span class="app-title" id="header-title">POINTAGE PRO</span>
+    </header>
+    
+    <div id="side-menu">
+        <button class="closebtn" onclick="closeNav()">&times;</button>
+        <div style="text-align: center; padding: 10px;">
+            <button onclick="toggleTheme()" style="background:none; border:1px solid #555; color:#ccc; padding:8px 15px; border-radius:20px; cursor:pointer;">🌗 Mode Sombre/Clair</button>
+        </div>
+        <div class="menu-section-title">Navigation</div>
+        <button class="menu-btn" onclick="switchView('main')">🏠 Journée Complète</button>
+        <button class="menu-btn" onclick="switchView('half')">⏱️ Demi-Journée</button>
+        <button class="menu-btn" onclick="switchView('rendement')">📊 Saisie Rendement</button>
+        
+        <div class="menu-section-title">Paramètres</div>
+        <div style="padding:10px;">
+            <label style="color:#aaa; font-size:0.8em; display:flex; align-items:center; cursor:pointer; font-weight:bold; margin-bottom: 10px;">
+                <input type="checkbox" id="sidebar-hd-toggle" onchange="toggleHalfDayRecap(this.checked)" style="margin-right:8px;"> 
+                Inclure ½ Journée au Récap.
+            </label>
+            <label style="color:#aaa; font-size:0.8em;">Copyright :</label>
+            <input type="text" id="copyright-input" placeholder="@hm.chb" onchange="updateCopyright(this.value)" style="width:100%; padding:5px; background:#333; border:none; color:white; border-radius:4px;">
+        </div>
+        <div class="menu-section-title">Archives</div>
+        <div style="padding: 10px;">
+            <input type="text" id="search-date" placeholder="JJ.MM.AA" style="width: 100%; padding: 12px; border-radius: 6px; border: none; text-align: center; background:#333; color:white;">
+            <button onclick="searchArchive()" style="width: 100%; margin-top: 8px; padding: 10px; background: var(--secondary); color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">🔍 Chercher</button>
+        </div>
+        <div class="menu-section-title">Actions</div>
+        <button class="menu-btn" onclick="saveDay()" style="color: #81c784;">💾 Clôturer la Journée</button>
+        <button class="menu-btn" onclick="exportData()" style="color: #ffcc80;">📤 Exporter Données</button>
+        <button class="menu-btn" onclick="clearData()" style="color: #ef5350;">🗑️ Reset Total</button>
+    </div>
+    
+    <div id="view-main" class="view-container active">
+        <div class="header-info-container">
+            <div id="header-display" class="header-display" onclick="toggleHeaderEdit()">
+                <h2 id="disp-societe">SOCIÉTÉ</h2>
+                <p><span id="disp-company">Company</span> • <span id="disp-domaine">Domaine</span></p>
+                <div></div>
+            </div>
+            <div id="header-edit" class="header-edit-mode">
+                <input type="text" class="header-input" id="head-societe" placeholder="Nom de la Société">
+                <div class="header-info-row">
+                    <input type="text" class="header-input" id="head-company" placeholder="Company">
+                    <input type="text" class="header-input" id="head-domaine" placeholder="Domaine">
+                </div>
+                <button class="btn btn-primary" onclick="saveHeaderInfo()">OK - Enregistrer</button>
+            </div>
+        </div>
+
+        <div class="stats-panel" onclick="downloadCard(this)" style="border-color: var(--primary-dark);">
+            <div class="stats-header" style="background: var(--primary-dark);">RÉCAPITULATIF</div>
+            <div class="stats-body">
+                <div class="stat-col">
+                    <h5>MAROCAINS</h5>
+                    <div class="stat-row"><span>MAIN D'OEUVRE:</span> <span id="s-m-mo">0</span></div>
+                    <div class="stat-row"><span>FAUX FIXE:</span> <span id="s-m-ff">0</span></div>
+                    <div class="stat-row"><span>POSTE FIXE:</span> <span id="s-m-pf">0</span></div>
+                    <div class="stat-row"><span>GARDIENS:</span> <span id="s-m-gard">0</span></div>
+                    <div class="stat-row stat-subtotal"><span>TOTAL:</span> <span id="s-m-total">0</span></div>
+                </div>
+                <div class="stat-col" style="border-left: 2px solid var(--border); padding-left: 10px;">
+                    <h5>AFRICAINS</h5>
+                    <div class="stat-row"><span>ENCADREMENT:</span> <span id="s-a-enc">0</span></div>
+                    <div class="stat-row"><span>MAIN D'OEUVRE:</span> <span id="s-a-mo">0</span></div>
+                    <div class="stat-row stat-subtotal"><span>TOTAL:</span> <span id="s-a-total">0</span></div>
+                </div>
+            </div>
+            <div class="stat-grand" style="background: var(--primary-dark);">TOTAL: <span id="s-grand-total">0</span></div>
+        </div>
+
+        <div class="stats-panel" id="extra-info-summary" style="margin-top: 15px; border-color: var(--primary);" onclick="downloadCard(this)">
+            <div class="stats-header" style="background: var(--primary);">EMBAUCHE ET TRANSFERT</div>
+            <div style="padding: 15px; font-size:0.9em; background: var(--card);">
+                <div id="summary-transfers"></div>
+                <div id="summary-strangers"></div>
+                <div style="border-top: 2px dashed var(--border); margin-top:10px; padding-top:10px;">
+                     <div class="stat-row"><span>Embûche ancien équipe:</span> <span id="sum-emb-ancien">0</span></div>
+                     <div class="stat-row"><span>Embûche nouveau équipe:</span> <span id="sum-emb-nouveau">0</span></div>
+                     <div class="stat-row"><span>Embûche africaine équipe:</span> <span id="sum-emb-af">0</span></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="stats-panel" id="recolte-summary-card" style="margin-top: 15px; border-color: var(--success);" onclick="downloadCard(this)">
+            <div class="stats-header" style="background: var(--success);">RÉCOLTE (GENI)</div>
+            <div style="padding: 15px; background: var(--card);">
+                <ul class="hd-sum-list" id="rec-summary-list"></ul>
+                <div id="rec-card-footer" style="margin-top:20px; font-size:0.9em; color:var(--text);"></div>
+            </div>
+            <div class="stat-grand" style="background: var(--success); text-align:left; font-size:1em; padding:10px;" id="rec-total-bar">TOTAL GLOBAL : 0</div>
+        </div>
+        
+        <div class="stats-panel" id="rendement-card" style="margin-top: 15px; border-color: var(--rendement);" onclick="downloadCard(this)">
+            <div class="stats-header" style="background: var(--rendement);">RENDEMENT (Kg/Prs)</div>
+            <div style="padding: 15px; background: var(--card);">
+                <ul class="hd-sum-list" id="rendement-list"></ul>
+                <div style="margin-top:20px; border-top:1px dashed var(--border); padding-top:10px; font-weight:600; color:var(--text);">
+                    <div style="display:flex; justify-content:space-between;"><span>Moyenne Globale:</span> <b id="rend-global-avg" style="color:var(--rendement);">0.00 Kg/P</b></div>
+                    <div style="display:flex; justify-content:space-between; margin-top:5px;"><span>Moyenne par Serre:</span> <b id="rend-serre-avg" style="color:var(--rendement);">0.00 Kg/S</b></div>
+                </div>
+            </div>
+             <div class="stat-grand" style="background: var(--rendement); font-size:1.1em;" id="rend-global-total">TOTAL PRODUCTION : 0 Kg</div>
+        </div>
+
+        <div class="stats-panel" id="africain-summary-card" style="margin-top: 15px; border-color: var(--info);" onclick="downloadCard(this)">
+            <div class="stats-header" style="background: var(--info);">ÉQUIPES AFRICAINES</div>
+            <div style="padding: 15px; background: var(--card);">
+                <ul class="hd-sum-list" id="africain-summary-list"></ul>
+            </div>
+            <div class="stat-grand" style="background: var(--info);">TOTAL AFRIQUE : <span id="africain-sum-total">0</span></div>
+        </div>
+
+        <div class="stats-panel" id="transport-summary-card" style="margin-top: 15px; border-color: var(--transport);" onclick="downloadCard(this)">
+            <div class="stats-header" style="background: var(--transport);">TRANSPORTS</div>
+            <div style="padding: 15px; background: var(--card);">
+                <div id="sans-transport-list" style="margin-bottom:10px;"></div>
+                <ul class="hd-sum-list" id="transport-summary-list"></ul>
+            </div>
+            <div class="stat-grand" style="background: var(--transport); display:flex; justify-content:space-around; font-size:1em;">
+                 <span>NB: <b id="trans-sum-count">0</b></span><span>EFF: <b id="trans-sum-people">0</b></span>
+            </div>
+        </div>
+
+        <div class="stats-panel" id="half-day-summary-card-main" style="margin-top: 15px; border-color: var(--warning);" onclick="downloadCard(this)">
+            <div class="stats-header" style="background: var(--warning);">DEMI-JOURNÉE</div>
+            <div style="padding: 15px; background: var(--card);">
+                <ul class="hd-sum-list" id="hd-summary-list-main"></ul>
+                <div class="hd-footer-stats">
+                     <div>Total Équipes: <b id="hd-sum-count-main">0</b></div><div>Récolte: <b id="hd-sum-rec-main">0</b></div><div>Dégagement: <b id="hd-sum-deg-main">0</b></div><div>Encadrement: <b id="hd-sum-enc-main">0</b></div>
+                </div>
+            </div>
+            <div class="stat-grand" style="background: var(--warning); font-size:1em;" id="hd-grand-total-main">TOTAL EFFECTIF : 0</div>
+        </div>
+
+        <div class="section-card">
+            <h3>POSTES & FAUX FIXES (M)</h3>
+            <div class="input-group"><label>POSTE FIXE</label><input type="number" id="input-pf" placeholder="0" onfocus="this.select()" onchange="updateIndividualInput('POSTE FIXE', this.value)"></div>
+            <div class="inputs-grid" style="margin-top: 10px;">
+                <div class="input-group"><label>CONTRÔLEUR</label><input type="number" id="input-controleur" placeholder="0" onfocus="this.select()" onchange="updateIndividualInput('CONTRÔLEUR', this.value)"></div>
+                <div class="input-group"><label>FAUX FIXE</label><input type="number" id="input-ff" placeholder="0" onfocus="this.select()" onchange="updateIndividualInput('FAUX FIXE', this.value)"></div>
+            </div>
+            <div class="input-group" style="margin-top: 10px;"><label>GARDIENS</label><input type="number" id="input-gardien" placeholder="0" onfocus="this.select()" onchange="updateIndividualInput('GARDIENS', this.value)"></div>
+        </div>
+
+        <div class="section-card">
+            <h3>EMBAUCHE ET TRANSFERT (SAISIE)</h3>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:15px;">
+                <button class="btn btn-transfer" onclick="openMovementModal('transfert')">Transfert</button>
+                <button class="btn btn-etranger" onclick="openMovementModal('etranger')">Étrangers</button>
+            </div>
+            <div id="movements-input-list" style="margin-bottom:15px;"></div>
+            <h4 style="border-top: 2px solid var(--border); padding-top:10px;">EMBAUCHÉS</h4>
+            <div class="inputs-grid">
+                <div class="input-group"><label>Embûche ancien équipe</label><input type="number" id="inp-emb-ancien" placeholder="0" onchange="updateEmbauche('ancien', this.value)"></div>
+                <div class="input-group"><label>Embûche nouveau équipe</label><input type="number" id="inp-emb-nouveau" placeholder="0" onchange="updateEmbauche('nouveau', this.value)"></div>
+            </div>
+            <div class="input-group" style="margin-top:5px;"><label>Embûche africaine équipe</label><input type="number" id="inp-emb-af" placeholder="0" onchange="updateEmbauche('af', this.value)"></div>
+        </div>
+
+        <div class="section-card">
+            <h3>ÉQUIPES (MAIN D'OEUVRE)</h3>
+            <div id="teams-container"></div>
+            <button class="btn btn-primary" onclick="promptAddTeam('full')">+ Ajouter une Équipe</button>
+        </div>
+
+        <div class="section-card" style="margin-top: 20px; border-top: 4px solid var(--primary);" onclick="downloadCard(this)">
+            <h3>DÉTAIL PAR OPÉRATION (GLOBAL)</h3>
+            <div id="main-ops-list" class="main-ops-list"></div>
+        </div>
+    </div>
+    
+    <div id="view-rendement" class="view-container">
+        <div class="global-input-container">
+            <label>PRODUCTION TOTALE (KG)</label>
+            <input type="number" id="global-prod-input" placeholder="0000" onchange="updateGlobalProduction(this.value)">
+        </div>
+        <div class="section-card" style="border-color: var(--rendement);">
+            <h3 style="color:var(--rendement);">PRODUCTION PAR SERRE</h3>
+            <div id="rendement-inputs-list"></div>
+        </div>
+    </div>
+
+    <div id="view-half" class="view-container">
+        <div class="section-card" style="border-top: 4px solid var(--warning);">
+            <h3 style="color: var(--warning);">ÉQUIPES DEMI-JOURNÉE</h3>
+            <div id="half-teams-container"></div>
+            <button class="btn btn-warning" onclick="promptAddTeam('half')">+ Ajouter Équipe (½)</button>
+        </div>
+        
+        <div style="background: var(--card); padding: 10px; text-align: center; border: 1px dashed var(--warning); border-radius: 6px; margin-bottom: 15px;">
+            <label style="cursor:pointer; font-weight:bold; font-size:0.9em; color:var(--text);">
+                <input type="checkbox" class="hd-recap-toggle" onchange="toggleHalfDayRecap(this.checked)">
+                ➕ Inclure au Récapitulatif Global
+            </label>
+        </div>
+
+        <div class="stats-panel" id="half-day-summary-card-half" style="background: var(--card); border-color: var(--warning);" onclick="downloadCard(this)">
+            <div class="stats-header" style="background: var(--warning);">RÉSUMÉ DEMI-JOURNÉE</div>
+            <div style="padding: 15px;">
+                <ul class="hd-sum-list" id="hd-summary-list-half"></ul>
+                <div class="hd-footer-stats">
+                     <div>Total Équipes: <b id="hd-sum-count-half">0</b></div><div>Récolte: <b id="hd-sum-rec-half">0</b></div><div>Dégagement: <b id="hd-sum-deg-half">0</b></div><div>Encadrement: <b id="hd-sum-enc-half">0</b></div>
+                </div>
+            </div>
+            <div class="stat-grand" style="background: var(--warning); font-size:1em;" id="hd-grand-total-half">TOTAL EFFECTIF : 0</div>
+        </div>
+    </div>
+
+    <div id="archiveModal" class="modal">
+        <div class="modal-content">
+            <span onclick="document.getElementById('archiveModal').style.display='none'" style="float:right; font-size:24px; cursor:pointer;">&times;</span>
+            <h3 id="modal-title" style="display:none;">Rapport</h3>
+            <div id="modal-body-container"></div>
+            <div style="display:flex; justify-content:space-around; margin-top:20px; padding-top:10px; border-top:1px solid #ccc;">
+                <button class="btn-action" style="background:#4caf50; color:white;" onclick="downloadArchiveImage()">📥 صورة (PNG)</button>
+                <button class="btn-action" style="background:#e53935; color:white;" onclick="downloadArchivePDF()">📄 ملف (PDF)</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="opModal" class="modal">
+        <div class="modal-content">
+            <span onclick="closeOpModal()" style="float:right; font-size:24px; cursor:pointer;">&times;</span>
+            <h3>Ajouter Opération</h3>
+            <input type="text" id="search-box" placeholder="Chercher opération (ex: Rec...)" onkeyup="filterOps()" autocomplete="off">
+            <div id="search-results"></div>
+            <button class="btn btn-add" id="btn-custom-op" onclick="useCustomOp()" style="display:none; margin-bottom:10px;">Utiliser ce nom personnalisé</button>
+            <div id="op-qty-container">
+                <div style="text-align:center; margin-bottom:10px; color:var(--primary); font-weight:bold;" id="selected-op-name"></div>
+                <div style="margin-bottom:10px;">
+                    <label style="font-size:0.9em;color:var(--text-muted)">Origine / Transport (Si autre) :</label>
+                    <select id="op-source-select" class="modal-select" style="margin-bottom:5px;"></select>
+                </div>
+                <label>Nombre de personnes :</label>
+                <input type="number" id="input-op-qty" placeholder="0">
+                <div style="display:flex; margin-top:15px;">
+                    <button class="btn-action" style="background:#ccc; color:#333;" onclick="closeOpModal()">Annuler</button>
+                    <button class="btn-action" style="background:var(--primary); color:white;" onclick="confirmAddOp()">Confirmer</button>
+                </div>
+                <div style="margin-top:10px; border-top:1px solid var(--border); padding-top:10px;">
+                   <label style="font-size:0.8em; color:var(--text-muted);">Catégorie (Optionnel) :</label>
+                   <select id="op-cat-select" style="width:100%; padding:8px; margin-top:5px; border-radius:4px; background:var(--input-bg); color:var(--text); border:1px solid var(--border);">
+                       <option value="MO">Main d'oeuvre (Défaut)</option><option value="FF">Faux Fixe</option><option value="PF">Poste Fixe</option>
+                   </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="movementModal" class="modal">
+        <div class="modal-content">
+            <span onclick="closeMovModal()" style="float:right; font-size:24px; cursor:pointer;">&times;</span>
+            <h3 id="mov-modal-title">...</h3>
+            <label id="mov-label-who">Qui ?</label>
+            <select id="mov-type" class="modal-select">
+                <option value="OUVRIER">OUVRIER(S)</option><option value="ÉQUIPE">ÉQUIPE(S)</option><option value="CAPORAL">CAPORAL(S)</option><option value="TRACTORISTE">TRACTORISTE</option><option value="Autre">Autre...</option>
+            </select>
+            <input type="text" id="mov-type-custom" placeholder="Préciser..." style="display:none; margin-bottom:10px;" class="modal-select">
+            <label>Nombre :</label>
+            <input type="number" id="input-mov-qty" placeholder="0" style="margin-bottom:15px;">
+            <label id="mov-label-loc">Destination / Source :</label>
+            <select id="mov-loc" class="modal-select"></select>
+            <input type="text" id="mov-loc-custom" placeholder="Préciser..." style="display:none; margin-bottom:10px;" class="modal-select">
+            <div style="display:flex; margin-top:15px;">
+                <button class="btn-action" style="background:#ccc; color:#333;" onclick="closeMovModal()">Annuler</button>
+                <button class="btn-action" style="background:var(--primary); color:white;" onclick="confirmMovement()">Confirmer</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="copyright-footer"></div>
+    <div id="export-container"></div>
+    <div id="temp-download-container"></div>
+
+<script>
+    const ALL_OPS = [ "Arcage", "Arrosage", "Bobinage", "Brumisation", "Cecidomyie", "Charge + Décharge", "Contrôle", "Couture", "Débobinage", "Découpage bloc coco", "Découpe de ficelle", "Dégagement (Myrtille)", "Désehrbage", "Désinstallation isonet et adhésif", "Divers", "Eclaircissage (Taille)", "Emballage (Myrtille)", "Encadrement", "Entretien Filet", "Evacuation coco", "Finition de l'évacuation des résidus", "Finition général", "Fixation rampe sur pot", "Gardiennage", "Hygienne", "Installation - Ajustement briques", "Installation adhésif", "Installation cornères", "Installation ficelle (Myrtille)", "Installation gouttières", "Installation piquet", "Irrigation + Fertilisation", "Lavage + Chaulage", "Lessivage", "Nettoyage + Evacuation", "Nettoyage gouttières", "Nivellement substrat", "Ouverture des apexes", "Palissage (Myrtille)", "Pépinière", "Pincement", "Plantation", "Pointage ou Magasin", "Pose coco", "Pots (Myrtille)", "Ramassage des supports des tiges", "Récolte", "Repmlissage pot avec substrat", "Séparation palissage", "Surveillance", "Surveillance cultures", "Taille", "Traitement", "Travaux du sol (MR)", "Triporteur (Myrtille)", "Tubing (Myrtille)", "z_Chômé" ];
+    
+    let appData = { headerInfo: {}, inputs: {}, teams: [], halfTeams: [], extraInfo: { transfers: [], strangers: [], hires: { ancien: 0, nouveau: 0, af: 0 } }, customOps: [], copyrightText: "@hm.chb", globalProduction: 0, productionData: {}, customLocations: [], includeHalfDayInRecap: false };
+    let currentModalMode = '', currentModalTeamIdx = -1, selectedOp = '', movMode = '';
+
+    function init() {
+        let saved = null;
+        try { saved = localStorage.getItem('agri_draft_v12'); } catch(e) {}
+        if (saved) { 
+            try { appData = JSON.parse(saved); } catch(e) { console.error(e); }
+            if(!appData.extraInfo) appData.extraInfo = { transfers: [], strangers: [], hires: { ancien: 0, nouveau: 0, af: 0 } }; 
+            if(!appData.customOps) appData.customOps = [];
+            if(!appData.copyrightText) appData.copyrightText = "@hm.chb";
+            if(!appData.productionData) appData.productionData = {};
+            if(appData.globalProduction === undefined) appData.globalProduction = 0;
+            if(!appData.customLocations) appData.customLocations = [];
+            if(!appData.teams) appData.teams = [];
+            if(!appData.halfTeams) appData.halfTeams = [];
+            if(appData.includeHalfDayInRecap === undefined) appData.includeHalfDayInRecap = false;
+            appData.teams.forEach(t => { if(!t.ops) t.ops = []; });
+            appData.halfTeams.forEach(t => { if(!t.ops) t.ops = []; });
+        }
+
+        const datalist = document.getElementById('location-list');
+        const defaults = ["S01","S02","S03","S04","S05","S06","S07","S08","S09","S10","S11","S12","S13","S14","S15","S16","S17","S18","S19","S20","Zone Emballage","Depot","Administration"];
+        const allLocs = [...new Set([...defaults, ...appData.customLocations])].sort();
+        if(datalist) {
+            datalist.innerHTML = "";
+            allLocs.forEach(loc => { const opt = document.createElement('option'); opt.value = loc; datalist.appendChild(opt); });
+        }
+
+        let lastActiveDate = null;
+        try { lastActiveDate = localStorage.getItem('agri_last_active_date'); } catch(e) {}
+        const now = new Date();
+        const today = `${now.getDate().toString().padStart(2,'0')}/${(now.getMonth()+1).toString().padStart(2,'0')}/${now.getFullYear()}`;
+        if (lastActiveDate && lastActiveDate !== today) silentArchive(lastActiveDate);
+        try { localStorage.setItem('agri_last_active_date', today); } catch(e) {}
+
+        let theme = 'light';
+        try { theme = localStorage.getItem('agri_theme'); } catch(e) {}
+        if(theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+
+        const qSelect = document.getElementById('mov-loc');
+        for(let i=1; i<=36; i++) { const opt = document.createElement('option'); opt.value = "Q"+i; opt.innerText = "Q"+i; qSelect.appendChild(opt); }
+        const optOther = document.createElement('option'); optOther.value = "Autre"; optOther.innerText = "Autre..."; qSelect.appendChild(optOther);
+        qSelect.addEventListener('change', function() { document.getElementById('mov-loc-custom').style.display = this.value === 'Autre' ? 'block' : 'none'; });
+        document.getElementById('mov-type').addEventListener('change', function() { document.getElementById('mov-type-custom').style.display = this.value === 'Autre' ? 'block' : 'none'; });
+
+        document.getElementById('copyright-input').value = appData.copyrightText;
+        document.getElementById('global-prod-input').value = appData.globalProduction || '';
+        document.getElementById('sidebar-hd-toggle').checked = appData.includeHalfDayInRecap;
+        document.querySelectorAll('.hd-recap-toggle').forEach(cb => cb.checked = appData.includeHalfDayInRecap);
+
+        updateCopyrightDisplay();
+        renderHeaderInfo(); renderIndividualInputs(); renderExtraInfoInputs(); renderExtraInfoSummary(); renderTeams('full'); renderTeams('half'); 
+        try { calculateStats(); } catch(e) { console.error("Calc Error Init:", e); }
+    }
+
+    function toggleTheme() {
+        const current = document.documentElement.getAttribute('data-theme');
+        if(current === 'dark') { document.documentElement.removeAttribute('data-theme'); try{localStorage.setItem('agri_theme', 'light');}catch(e){} } 
+        else { document.documentElement.setAttribute('data-theme', 'dark'); try{localStorage.setItem('agri_theme', 'dark');}catch(e){} }
+    }
+
+    function updateCopyright(val) { appData.copyrightText = val; saveAndCalc(); updateCopyrightDisplay(); }
+    function updateCopyrightDisplay() { document.getElementById('copyright-footer').innerText = appData.copyrightText ? `VBF 01 | Dev by ${appData.copyrightText}` : ''; }
+    function updateGlobalProduction(val) { appData.globalProduction = parseFloat(val) || 0; saveAndCalc(); calculateStats(); }
+    function toggleHalfDayRecap(isChecked) {
+        appData.includeHalfDayInRecap = isChecked;
+        document.getElementById('sidebar-hd-toggle').checked = isChecked;
+        document.querySelectorAll('.hd-recap-toggle').forEach(cb => cb.checked = isChecked);
+        saveAndCalc();
+    }
+
+    function renderHeaderInfo() {
+        if(!appData.headerInfo) appData.headerInfo = { societe: "", company: "", domaine: "" };
+        document.getElementById('head-societe').value = appData.headerInfo.societe || "";
+        document.getElementById('head-company').value = appData.headerInfo.company || "";
+        document.getElementById('head-domaine').value = appData.headerInfo.domaine || "";
+        document.getElementById('disp-societe').innerText = appData.headerInfo.societe || "SOCIÉTÉ";
+        document.getElementById('disp-company').innerText = appData.headerInfo.company || "Company";
+        document.getElementById('disp-domaine').innerText = appData.headerInfo.domaine || "Domaine";
+    }
+    function toggleHeaderEdit() {
+        const displayDiv = document.getElementById('header-display'), editDiv = document.getElementById('header-edit');
+        if (editDiv.style.display === 'flex') { editDiv.style.display = 'none'; displayDiv.style.display = 'block'; } else { editDiv.style.display = 'flex'; displayDiv.style.display = 'none'; }
+    }
+    function saveHeaderInfo() {
+        appData.headerInfo.societe = document.getElementById('head-societe').value;
+        appData.headerInfo.company = document.getElementById('head-company').value;
+        appData.headerInfo.domaine = document.getElementById('head-domaine').value;
+        saveAndCalc(); renderHeaderInfo(); toggleHeaderEdit();
+    }
+
+    function renderIndividualInputs() {
+        document.getElementById('input-pf').value = appData.inputs["POSTE FIXE"] || '';
+        document.getElementById('input-controleur').value = appData.inputs["CONTRÔLEUR"] || '';
+        document.getElementById('input-ff').value = appData.inputs["FAUX FIXE"] || '';
+        document.getElementById('input-gardien').value = appData.inputs["GARDIENS"] || '';
+    }
+    function renderExtraInfoInputs() {
+        document.getElementById('inp-emb-ancien').value = appData.extraInfo.hires.ancien || '';
+        document.getElementById('inp-emb-nouveau').value = appData.extraInfo.hires.nouveau || '';
+        document.getElementById('inp-emb-af').value = appData.extraInfo.hires.af || '';
+        const container = document.getElementById('movements-input-list'); container.innerHTML = '';
+        appData.extraInfo.transfers.forEach((txt, idx) => { container.innerHTML += `<div class="mov-item"><span>Transfert : ${txt.replace(/.* : /,'')}</span> <span class="mov-remove" onclick="removeMovement('transfert', ${idx})">&times;</span></div>`; });
+        appData.extraInfo.strangers.forEach((txt, idx) => { container.innerHTML += `<div class="mov-item etranger"><span>Étranger : ${txt.replace(/.* : /,'')}</span> <span class="mov-remove" onclick="removeMovement('etranger', ${idx})">&times;</span></div>`; });
+    }
+    function renderExtraInfoSummary() {
+        const tDiv = document.getElementById('summary-transfers'), sDiv = document.getElementById('summary-strangers');
+        tDiv.innerHTML = appData.extraInfo.transfers.length ? '' : '<div style="color:var(--text-muted); font-style:italic;">Aucun transfert sortant</div>';
+        appData.extraInfo.transfers.forEach(t => tDiv.innerHTML += `<div style="color:var(--secondary); font-weight:700;">${t}</div>`);
+        sDiv.innerHTML = appData.extraInfo.strangers.length ? '' : '<div style="color:var(--text-muted); font-style:italic;">Aucun étranger entrant</div>';
+        appData.extraInfo.strangers.forEach(s => sDiv.innerHTML += `<div style="color:var(--info); font-weight:700;">${s}</div>`);
+        document.getElementById('sum-emb-ancien').innerText = appData.extraInfo.hires.ancien || 0;
+        document.getElementById('sum-emb-nouveau').innerText = appData.extraInfo.hires.nouveau || 0;
+        document.getElementById('sum-emb-af').innerText = appData.extraInfo.hires.af || 0;
+    }
+
+    function renderTeams(mode) {
+        const container = document.getElementById(mode === 'full' ? 'teams-container' : 'half-teams-container');
+        container.innerHTML = '';
+        const list = mode === 'full' ? appData.teams : appData.halfTeams;
+
+        const mappedList = list.map((t, i) => ({...t, originalIndex: i}));
+        const marocTeams = mappedList.filter(t => t.type === 'maroc');
+        const africainTeams = mappedList.filter(t => t.type === 'africain');
+
+        const renderGroup = (groupList, title, icon) => {
+            if(groupList.length > 0) {
+                 container.innerHTML += `<div class="team-group-separator">${icon} ${title}</div>`;
+                 groupList.forEach((teamObj) => {
+                    const realIndex = teamObj.originalIndex; 
+                    const team = list[realIndex]; 
+
+                    if(!team.ops) team.ops = [];
+                    let totalMembers = team.ops.reduce((sum, op) => sum + (parseInt(op.count) || 0), 0);
+                    let timeHtml = '', badgesHtml = `<span class="count-badge">${totalMembers}</span>`;
+                    
+                    if (mode === 'half') {
+                        const dur = calcDuration(team.startT, team.endT);
+                        if(dur) badgesHtml += `<span class="duration-badge">${dur}</span>`;
+                        timeHtml = `<div class="time-inputs"><input type="time" value="${team.startT||''}" onchange="updateTeamTime(${realIndex}, 'startT', this.value)"><input type="time" value="${team.endT||''}" onchange="updateTeamTime(${realIndex}, 'endT', this.value)"></div>`;
+                    }
+
+                    let opsHtml = '';
+                    team.ops.forEach((op, opIdx) => {
+                        opsHtml += `<div class="op-row"><span>${op.name}</span><div><input type="number" class="op-input" value="${op.count}" onchange="updateOpCount('${mode}', ${realIndex}, ${opIdx}, this.value)" onclick="this.select()"><span class="op-delete" onclick="removeOp('${mode}', ${realIndex}, ${opIdx})">&times;</span></div></div>`;
+                    });
+                    
+                    const tm = team.transportMode || 'transport'; 
+                    const showTrans = (team.showInTransport !== false); 
+                    let infoRow = '';
+                    let busIcon = showTrans ? '🚌' : '👁️‍🗨️';
+                    
+                    if(tm === 'transport') {
+                        infoRow = `<div class="team-info-display">${busIcon} <div class="info-bit"><span class="info-label">Type:</span> ${team.vehicleType || '-'}</div><div class="info-bit"><span class="info-label">Mat:</span> ${team.matricule || '-'}</div><div class="info-bit"><span class="info-label">Dep:</span> ${team.depart || '-'}</div><div class="info-bit"><span class="info-label">Lieu:</span> ${team.serre || '-'}</div></div>`;
+                    } else {
+                        infoRow = `<div class="team-info-display" style="justify-content:center;">${busIcon} <span style="font-weight:bold; color:var(--text);">${tm === 'secteur' ? '🏠 SECTEUR' : '🚶 DOUAR'}</span><div class="info-bit" style="margin-left:10px;"><span class="info-label">Lieu:</span> ${team.serre || '-'}</div></div>`;
+                    }
+                    
+                    const escapedName = team.name.replace(/'/g, "&apos;").replace(/"/g, "&quot;");
+
+                    const editForm = `
+                        <div id="team-edit-${mode}-${realIndex}" class="team-edit-form">
+                            <div style="margin-bottom:8px; font-weight:bold; color:var(--primary); font-size:0.9em; text-transform:uppercase;">MODIFIER INFORMATIONS</div>
+                            <input type="text" class="header-input" style="margin-bottom:8px;" placeholder="Nom Équipe" value="${escapedName}" onchange="updateTeamName('${mode}', ${realIndex}, this.value)">
+                            <div style="margin-bottom:8px;">
+                                <label style="font-size:0.8em; font-weight:bold; color:var(--text-muted);">Mode Transport :</label>
+                                <select class="header-input" onchange="updateTeamMeta('${mode}', ${realIndex}, 'transportMode', this.value)">
+                                    <option value="transport" ${tm==='transport'?'selected':''}>Transport</option><option value="secteur" ${tm==='secteur'?'selected':''}>Secteur</option><option value="douar" ${tm==='douar'?'selected':''}>Douar</option>
+                                </select>
+                            </div>
+                            <div style="${tm!=='transport'?'display:none':''}; margin-bottom:8px;">
+                                <div class="edit-row">
+                                    <input type="text" list="vehicle-list" class="edit-input" placeholder="Type" value="${team.vehicleType||''}" onchange="updateTeamMeta('${mode}', ${realIndex}, 'vehicleType', this.value)">
+                                    <input type="text" class="edit-input" placeholder="Matricule" value="${team.matricule||''}" onchange="updateTeamMeta('${mode}', ${realIndex}, 'matricule', this.value)">
+                                    <input type="text" class="edit-input" placeholder="Départ" value="${team.depart||''}" onchange="updateTeamMeta('${mode}', ${realIndex}, 'depart', this.value)">
+                                </div>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:5px; background:rgba(0,0,0,0.02); padding:5px; border-radius:4px;">
+                                <div style="flex:1; margin-right:10px;">
+                                    <label style="font-size:0.8em; font-weight:bold; color:var(--text-muted);">Lieu / Serre :</label>
+                                    <input type="text" list="location-list" class="edit-input" style="width:100%;" placeholder="S.." value="${team.serre||''}" onchange="updateTeamMeta('${mode}', ${realIndex}, 'serre', this.value)">
+                                </div>
+                                <label class="edit-checkbox-container" style="cursor:pointer;"><input type="checkbox" ${showTrans?'checked':''} onchange="updateTeamMeta('${mode}', ${realIndex}, 'showInTransport', this.checked)"> Afficher Transp.</label>
+                            </div>
+                            <button class="btn btn-primary" style="margin-top:10px; padding:8px;" onclick="toggleTeamEdit('${mode}', ${realIndex})">OK - TERMINER</button>
+                        </div>
+                    `;
+
+                    container.innerHTML += `
+                        <div class="team-card ${team.type}">
+                            <div class="team-header">
+                                <div class="team-title-row"><span class="team-name-text">${team.name}</span>${badgesHtml}</div>
+                                <div class="team-actions"><span class="action-icon edit-icon" onclick="toggleTeamEdit('${mode}', ${realIndex})">✎</span><span class="action-icon delete-icon" onclick="removeTeam('${mode}', ${realIndex})">🗑️</span></div>
+                            </div>
+                            ${infoRow}${editForm}${timeHtml}
+                            <div class="team-body">${opsHtml}</div>
+                            <button class="btn btn-add" onclick="openOpModal('${mode}', ${realIndex})">+ Opération</button>
+                        </div>`;
+                 });
+            }
+        };
+
+        renderGroup(marocTeams, "ÉQUIPES MAROCAINES", "🇲🇦");
+        renderGroup(africainTeams, "ÉQUIPES AFRICAINES", "🌍");
+
+        if (list.length === 0) container.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:10px;">Aucune équipe</div>';
+    }
+    
+    function toggleTeamEdit(mode, index) {
+        const el = document.getElementById(`team-edit-${mode}-${index}`);
+        if(el) el.style.display = el.style.display === 'none' || el.style.display === '' ? 'block' : 'none';
+    }
+
+    function renderProductionInputs() {
+        const container = document.getElementById('rendement-inputs-list');
+        if(!container) return;
+        container.innerHTML = '';
+        const activeSerres = new Set();
+        [...appData.teams, ...appData.halfTeams].forEach(t => {
+            if(t.serre && t.ops && t.ops.some(op => op.name.toLowerCase().includes("récolte"))) {
+                activeSerres.add(t.serre);
+            }
+        });
+        
+        if(activeSerres.size === 0) { container.innerHTML = '<div style="color:var(--text-muted); font-size:0.9em; text-align:center; padding:10px;">Aucune serre de récolte active</div>'; return; }
+
+        Array.from(activeSerres).sort().forEach(s => {
+            let val = appData.productionData[s] || 0;
+            container.innerHTML += `<div class="rendement-row"><span class="rendement-label">${s}</span><input type="number" class="rendement-input" value="${val}" onchange="updateProductionData('${s}', this.value)" placeholder="Kg"></div>`;
+        });
+    }
+
+    function updateProductionData(serre, val) { appData.productionData[serre] = parseFloat(val) || 0; saveAndCalc(); calculateStats(); }
+    function updateIndividualInput(label, val) { appData.inputs[label] = parseInt(val) || 0; saveAndCalc(); }
+    function updateEmbauche(type, val) { appData.extraInfo.hires[type] = parseInt(val) || 0; saveAndCalc(); }
+    
+    function updateTeamMeta(mode, idx, field, val) { 
+        if(mode === 'full') appData.teams[idx][field] = val; else appData.halfTeams[idx][field] = val; 
+        if(field === 'serre' && val) {
+            const defaults = ["S01","S02","S03","S04","S05","S06","S07","S08","S09","S10","S11","S12","S13","S14","S15","S16","S17","S18","S19","S20","Zone Emballage","Depot","Administration"];
+            if(!defaults.includes(val) && !appData.customLocations.includes(val)) {
+                appData.customLocations.push(val);
+                const datalist = document.getElementById('location-list');
+                if(datalist) { const opt = document.createElement('option'); opt.value = val; datalist.appendChild(opt); }
+            }
+        }
+        saveAndCalc(); 
+        if(field === 'transportMode' || field === 'serre' || field === 'showInTransport') renderTeams(mode);
+    }
+    
+    function updateTeamName(mode, idx, val) { if(mode === 'full') appData.teams[idx].name = val; else appData.halfTeams[idx].name = val; saveAndCalc(); renderTeams(mode); }
+
+    function openMovementModal(mode) { movMode = mode; document.getElementById('mov-modal-title').innerText = mode === 'transfert' ? 'Transfert' : 'Étrangers'; document.getElementById('mov-label-loc').innerText = mode === 'transfert' ? "Vers :" : "Du :"; document.getElementById('mov-type').value = 'OUVRIER'; document.getElementById('mov-type-custom').style.display = 'none'; document.getElementById('input-mov-qty').value = ''; document.getElementById('mov-loc').value = 'Q1'; document.getElementById('mov-loc-custom').style.display = 'none'; document.getElementById('movementModal').style.display = 'block'; }
+    function closeMovModal() { document.getElementById('movementModal').style.display = 'none'; }
+    function confirmMovement() {
+        let type = document.getElementById('mov-type').value; if(type === 'Autre') type = document.getElementById('mov-type-custom').value.trim();
+        const count = document.getElementById('input-mov-qty').value;
+        let loc = document.getElementById('mov-loc').value; if(loc === 'Autre') loc = document.getElementById('mov-loc-custom').value.trim();
+        if(!type || !count || !loc) { alert("Remplir tous les champs"); return; }
+        let typeStr = type; if(parseInt(count) > 1 && !type.endsWith('S') && type !== "Autre") typeStr += "S";
+        let resultStr = movMode === 'transfert' ? `Transfert : ${count} ${typeStr} Vers ${loc}` : `Étranger : ${count} ${typeStr} Du ${loc}`;
+        if(movMode === 'transfert') appData.extraInfo.transfers.push(resultStr); else appData.extraInfo.strangers.push(resultStr);
+        closeMovModal(); renderExtraInfoInputs(); renderExtraInfoSummary(); saveAndCalc();
+    }
+    function removeMovement(type, idx) { if(!confirm("Supprimer ?")) return; if(type === 'transfert') appData.extraInfo.transfers.splice(idx, 1); else appData.extraInfo.strangers.splice(idx, 1); renderExtraInfoInputs(); renderExtraInfoSummary(); saveAndCalc(); }
+
+    function updateOpCount(mode, teamIdx, opIdx, val) { const team = mode === 'full' ? appData.teams[teamIdx] : appData.halfTeams[teamIdx]; team.ops[opIdx].count = parseInt(val) || 0; calculateStats(); try { localStorage.setItem('agri_draft_v12', JSON.stringify(appData)); } catch(e){} renderTeams(mode); }
+    function promptAddTeam(mode) { const name = prompt("Nom de l'équipe :"); if (!name) return; let type = 'maroc'; if (confirm("Est-ce une équipe AFRICAINE ?\nOK = Africaine 🌍\nAnnuler = Marocaine 🇲🇦")) type = 'africain'; const newTeam = { name, type, ops: [], startT:'', endT:'', matricule:'', depart:'', vehicleType:'', transportMode: 'transport', serre:'', showInTransport: true }; if (mode === 'full') appData.teams.push(newTeam); else appData.halfTeams.push(newTeam); renderTeams(mode); saveAndCalc(); }
+    function removeTeam(mode, index) { if (!confirm("Supprimer cette équipe ?")) return; if (mode === 'full') appData.teams.splice(index, 1); else appData.halfTeams.splice(index, 1); renderTeams(mode); saveAndCalc(); }
+    function removeOp(mode, teamIdx, opIdx) { const team = mode === 'full' ? appData.teams[teamIdx] : appData.halfTeams[teamIdx]; team.ops.splice(opIdx, 1); renderTeams(mode); saveAndCalc(); }
+    function updateTeamTime(idx, field, val) { appData.halfTeams[idx][field] = val; renderTeams('half'); saveAndCalc(); }
+
+    function openOpModal(mode, teamIdx) { 
+        currentModalMode = mode; currentModalTeamIdx = teamIdx; selectedOp = ''; 
+        document.getElementById('search-box').value = ''; document.getElementById('search-results').innerHTML = ''; 
+        document.getElementById('input-op-qty').value = ''; 
+        document.getElementById('op-qty-container').style.display = 'none'; 
+        document.getElementById('btn-custom-op').style.display = 'none'; 
+        document.getElementById('op-cat-select').value = 'MO'; 
+        
+        const sourceSelect = document.getElementById('op-source-select');
+        sourceSelect.innerHTML = '<option value="">Cette équipe (Par défaut)</option>';
+        const allTeams = [...appData.teams, ...appData.halfTeams];
+        allTeams.forEach(t => { const opt = document.createElement('option'); opt.value = t.name; opt.innerText = t.name; sourceSelect.appendChild(opt); });
+
+        document.getElementById('opModal').style.display = 'block'; 
+        document.getElementById('search-box').focus(); 
+    }
+    
+    function closeOpModal() { document.getElementById('opModal').style.display = 'none'; }
+    
+    function filterOps() {
+        const query = document.getElementById('search-box').value.toLowerCase(); const resultsDiv = document.getElementById('search-results'); const customBtn = document.getElementById('btn-custom-op'); resultsDiv.innerHTML = '';
+        if(query.length === 0) { customBtn.style.display = 'none'; return; }
+        const combinedOps = [...ALL_OPS, ...(appData.customOps || [])];
+        const matches = combinedOps.filter(op => op.toLowerCase().includes(query));
+        if (matches.length === 0) { resultsDiv.innerHTML = '<div style="padding:10px; color:#888;">Aucun résultat</div>'; customBtn.innerText = `Utiliser "${document.getElementById('search-box').value}"`; customBtn.style.display = 'block'; } 
+        else { customBtn.style.display = 'none'; matches.forEach(op => { const div = document.createElement('div'); div.className = 'search-item'; div.innerText = op; div.onclick = () => selectOp(op); resultsDiv.appendChild(div); }); }
+    }
+    function selectOp(opName) { selectedOp = opName; document.getElementById('search-results').innerHTML = ''; document.getElementById('search-box').value = opName; showQtyInput(); }
+    function useCustomOp() { const val = document.getElementById('search-box').value.trim(); if(!val) return; selectedOp = val; showQtyInput(); }
+    function showQtyInput() { document.getElementById('selected-op-name').innerText = selectedOp; document.getElementById('op-qty-container').style.display = 'block'; document.getElementById('btn-custom-op').style.display = 'none'; document.getElementById('input-op-qty').focus(); }
+    
+    function confirmAddOp() { 
+        const count = parseInt(document.getElementById('input-op-qty').value); 
+        if(isNaN(count) || count <= 0) { alert("Veuillez entrer un nombre valide."); return; } 
+        const customCat = document.getElementById('op-cat-select').value; 
+        const sourceVal = document.getElementById('op-source-select').value;
+        const team = currentModalMode === 'full' ? appData.teams[currentModalTeamIdx] : appData.halfTeams[currentModalTeamIdx]; 
+        if (!ALL_OPS.includes(selectedOp) && !appData.customOps.includes(selectedOp)) { appData.customOps.push(selectedOp); }
+        const existingOp = team.ops.find(o => o.name === selectedOp && (o.source || '') === sourceVal); 
+        if(existingOp) { existingOp.count += count; if(customCat !== 'MO') existingOp.customCat = customCat; } 
+        else { let newOp = { name: selectedOp, count: count, customCat: customCat }; if(sourceVal) newOp.source = sourceVal; team.ops.push(newOp); } 
+        closeOpModal(); renderTeams(currentModalMode); saveAndCalc(); 
+    }
+
+    function calculateStats() {
+        let hdCardListHtml = ""; 
+
+        renderProductionInputs(); 
+
+        let s = { m_mo: 0, m_ff: 0, m_pf: 0, m_gard: 0, a_mo: 0, a_enc: 0 };
+        let globalOps = {}; 
+        const manualInputs = { "Poste Fixe": appData.inputs["POSTE FIXE"] || 0, "Contrôleur": appData.inputs["CONTRÔLEUR"] || 0, "Faux Fixe": appData.inputs["FAUX FIXE"] || 0, "Gardiens": appData.inputs["GARDIENS"] || 0 };
+        for (const [key, val] of Object.entries(manualInputs)) { if (val > 0) globalOps[key] = val; }
+
+        s.m_pf += manualInputs["Poste Fixe"]; s.m_ff += (manualInputs["Contrôleur"] + manualInputs["Faux Fixe"]); s.m_gard += manualInputs["Gardiens"];
+
+        let recStats = { mar: { rec: 0, deg: 0, enc: 0 }, afr: { rec: 0, deg: 0, enc: 0 } };
+        let recTeamsMaroc = []; let recTeamsAfricain = [];
+        let africainTeamsList = []; let africainSum = 0;
+        let transportList = [], sansTransList = [], transTotal = {count:0, ppl:0};
+        let rendementData = {}; let globalRecolteWorkers = 0; let activeSerresCount = 0;
+
+        function processTeam(team, isHalfDay) {
+            let teamTotal = 0;
+            if(!team.ops) team.ops = [];
+            team.ops.forEach(op => teamTotal += op.count);
+            if (teamTotal === 0) return;
+
+            const skipMainStats = isHalfDay && !appData.includeHalfDayInRecap;
+
+            let hasRecolteOp = false;
+            let teamCap = 0, teamRec = 0, teamDeg = 0;
+
+            team.ops.forEach(op => {
+                const opName = (op.name || "").toLowerCase();
+                
+                if (!skipMainStats) {
+                    if(!globalOps[op.name]) globalOps[op.name] = 0; 
+                    globalOps[op.name] += op.count;
+
+                    if (opName.includes("gardiennage") || opName.includes("gardien")) { s.m_gard += op.count; } 
+                    else {
+                        if (team.type === 'maroc') {
+                            if (op.customCat) { if(op.customCat === 'FF') s.m_ff += op.count; else if(op.customCat === 'PF') s.m_pf += op.count; else s.m_mo += op.count; } 
+                            else { if (opName.includes("encadrement") || opName.includes("contrôle")) s.m_ff += op.count; else s.m_mo += op.count; }
+                        } else {
+                            if (opName.includes("encadrement")) s.a_enc += op.count; else s.a_mo += op.count;
+                        }
+                    }
+                }
+
+                if (opName.includes("récolte")) { 
+                    hasRecolteOp = true; 
+                    teamRec += op.count; 
+                    if (!skipMainStats) {
+                        globalRecolteWorkers += op.count; 
+                        if(team.serre) {
+                            if(!rendementData[team.serre]) rendementData[team.serre] = { people: 0 };
+                            rendementData[team.serre].people += op.count;
+                        }
+                    }
+                }
+                else if (opName.includes("dégagement")) { teamDeg += op.count; }
+                else if (opName.includes("encadrement") || opName.includes("caporal") || opName.includes("contrôle")) { teamCap += op.count; }
+            });
+
+            if (!skipMainStats) {
+                if (team.type === 'africain' && teamTotal > 0) { africainTeamsList.push({name: team.name, count: teamTotal}); africainSum += teamTotal; }
+
+                if (hasRecolteOp) {
+                    let data = { name: team.name, cap: teamCap, rec: teamRec, deg: teamDeg };
+                    if (team.type === 'africain') { recTeamsAfricain.push(data); recStats.afr.rec += teamRec; recStats.afr.deg += teamDeg; recStats.afr.enc += teamCap; } 
+                    else { recTeamsMaroc.push(data); recStats.mar.rec += teamRec; recStats.mar.deg += teamDeg; recStats.mar.enc += teamCap; }
+                }
+            }
+        }
+        
+        let transportCounts = {};
+        [...appData.teams, ...appData.halfTeams].forEach(t => transportCounts[t.name] = 0);
+        let teamsForTransport = appData.teams.slice();
+        if (appData.includeHalfDayInRecap) teamsForTransport = teamsForTransport.concat(appData.halfTeams);
+
+        teamsForTransport.forEach(t => {
+            if(t.ops) {
+                t.ops.forEach(op => {
+                    let target = op.source && op.source !== "" ? op.source : t.name;
+                    if (transportCounts[target] !== undefined) transportCounts[target] += op.count;
+                });
+            }
+        });
+        
+        teamsForTransport.forEach(t => {
+            let count = transportCounts[t.name] || 0;
+            if (count > 0 && t.showInTransport !== false) {
+                 const tm = t.transportMode || 'transport';
+                 if (tm === 'transport') {
+                    transportList.push({ name: t.name, mat: t.matricule || 'N/A', dep: t.depart || 'N/A', type: t.vehicleType || 'N/A', count: count });
+                    transTotal.count++; transTotal.ppl += count;
+                 } else {
+                    sansTransList.push({ name: t.name, mode: tm, count: count });
+                 }
+            }
+        });
+
+        if(appData.teams) appData.teams.forEach(t => processTeam(t, false));
+        if(appData.halfTeams) appData.halfTeams.forEach(t => processTeam(t, true));
+
+        const safeText = (id, txt) => { document.querySelectorAll(`#${id}`).forEach(el => el.innerText = txt); };
+        const safeHTML = (id, html) => { document.querySelectorAll(`#${id}`).forEach(el => el.innerHTML = html); };
+
+        safeText('s-m-mo', s.m_mo); safeText('s-m-ff', s.m_ff); safeText('s-m-pf', s.m_pf); safeText('s-m-gard', s.m_gard); safeText('s-m-total', s.m_mo + s.m_ff + s.m_pf + s.m_gard);
+        safeText('s-a-enc', s.a_enc); safeText('s-a-mo', s.a_mo); safeText('s-a-total', s.a_enc + s.a_mo);
+        safeText('s-grand-total', s.m_mo + s.m_ff + s.m_pf + s.m_gard + s.a_enc + s.a_mo);
+
+        document.querySelectorAll('#main-ops-list').forEach(mainOpsContainer => {
+            mainOpsContainer.innerHTML = '';
+            let totalGlobal = 0;
+            if(Object.keys(globalOps).length === 0) mainOpsContainer.innerHTML = '<div style="text-align:center;color:#888">Aucune opération</div>';
+            else { 
+                for(const [key, val] of Object.entries(globalOps)) { totalGlobal += val; let div = document.createElement('div'); div.innerHTML = `<span>${key}</span> <b>${val}</b>`; mainOpsContainer.appendChild(div); }
+                mainOpsContainer.innerHTML += `<div style="border-top:2px dashed var(--text-light); margin-top:8px; padding-top:5px; text-align:right; font-weight:900; font-size:1.1em; color:var(--primary);">TOTAL GLOBAL : ${totalGlobal}</div>`;
+            }
+        });
+
+        document.querySelectorAll('#africain-summary-list').forEach(afList => {
+            afList.innerHTML = '';
+            if(africainTeamsList.length === 0) afList.innerHTML = '<li style="text-align:center; color:var(--text-muted);">Aucune équipe africaine</li>';
+            else { africainTeamsList.forEach(t => { afList.innerHTML += `<li class="hd-sum-item"><span>${t.name}</span> <span class="hd-sum-data">${t.count}</span></li>`; }); }
+        });
+        safeText('africain-sum-total', africainSum);
+
+        document.querySelectorAll('#transport-summary-card').forEach(transCard => {
+            const transListDOM = transCard.querySelector('#transport-summary-list'); 
+            const sansTransListDOM = transCard.querySelector('#sans-transport-list');
+            if(transListDOM && sansTransListDOM) {
+                transListDOM.innerHTML = ''; sansTransListDOM.innerHTML = '';
+                if(sansTransList.length > 0) { sansTransListDOM.innerHTML = '<div class="hd-sum-group-title">SANS TRANSPORT</div>'; sansTransList.forEach(t => { let icon = t.mode === 'secteur' ? '🏠' : '🚶'; sansTransListDOM.innerHTML += `<div class="hd-sum-item"><span>${icon} ${t.name}</span> <span class="hd-sum-data">${t.count}</span></div>`; }); }
+                if(transportList.length > 0) { transportList.forEach(t => { transListDOM.innerHTML += `<li class="hd-sum-item" style="flex-direction:column; align-items:flex-start;"><div style="width:100%; display:flex; justify-content:space-between;"><span style="font-weight:bold;">${t.name}</span> <span class="hd-sum-data">${t.count}</span></div><div style="font-size:0.8em; color:var(--text-muted); width:100%;">${t.type} | ${t.mat} | ${t.dep}</div></li>`; }); } 
+                else { transListDOM.innerHTML = '<li style="text-align:center; color:var(--text-muted);">Aucun transport</li>'; }
+            }
+        });
+        safeText('trans-sum-count', transTotal.count); safeText('trans-sum-people', transTotal.ppl);
+
+        document.querySelectorAll('#rec-summary-list').forEach(recList => {
+            recList.innerHTML = '';
+            if(recTeamsAfricain.length === 0 && recTeamsMaroc.length === 0) { recList.innerHTML = '<li style="text-align:center; color:var(--text-muted);">Aucune équipe de récolte</li>'; } 
+            else {
+                if(recTeamsAfricain.length > 0) { recList.innerHTML += `<div class="hd-sum-group-title">🌍 AFRICAINS</div>`; recTeamsAfricain.forEach(t => { recList.innerHTML += `<li class="hd-sum-item"><span>ÉQ : ${t.name}</span> <span class="hd-sum-data">CAP:${t.cap} | RÉC:${t.rec} | DÉG:${t.deg}</span></li>`; }); }
+                if(recTeamsMaroc.length > 0) { recList.innerHTML += `<div class="hd-sum-group-title">🇲🇦 MAROCAINS</div>`; recTeamsMaroc.forEach(t => { recList.innerHTML += `<li class="hd-sum-item"><span>ÉQ : ${t.name}</span> <span class="hd-sum-data">CAP:${t.cap} | RÉC:${t.rec} | DÉG:${t.deg}</span></li>`; }); }
+            }
+        });
+        safeHTML('rec-card-footer', `<div style="width:100%; border-bottom:1px dashed var(--text-muted); margin-bottom:5px; padding-bottom:5px; font-size:0.9em; font-weight:600;"><strong>MAROCAINS</strong><br>Encadrement : ${recStats.mar.enc} | Récolte : ${recStats.mar.rec} | Dégagement : ${recStats.mar.deg}</div><div style="width:100%; font-size:0.9em; font-weight:600;"><strong>AFRICAINS</strong><br>Encadrement : ${recStats.afr.enc} | Récolte : ${recStats.afr.rec} | Dégagement : ${recStats.afr.deg}</div>`);
+        safeHTML('rec-total-bar', `TOTAL GLOBAL :<br>Encadrement : ${recStats.mar.enc + recStats.afr.enc} | Récolte : ${recStats.mar.rec + recStats.afr.rec} | Dégagement : ${recStats.mar.deg + recStats.afr.deg}`);
+
+        document.querySelectorAll('#rendement-list').forEach(rendList => {
+            rendList.innerHTML = '';
+            const serres = Object.keys(rendementData).sort();
+            activeSerresCount = serres.length; 
+            if(serres.length === 0) rendList.innerHTML = '<li style="text-align:center; color:var(--text-muted);">Aucune donnée</li>';
+            else { serres.forEach(s => { let ppl = rendementData[s].people; let kgs = appData.productionData[s] || 0; let avg = ppl > 0 ? (kgs / ppl).toFixed(2) : 0; rendList.innerHTML += `<li class="hd-sum-item"><span>${s} (Pers: ${ppl})</span> <span class="hd-sum-data">${kgs} Kg | <b>${avg}</b> Kg/p</span></li>`; }); }
+        });
+        let avgPerSerre = activeSerresCount > 0 ? (appData.globalProduction / activeSerresCount).toFixed(2) : 0;
+        let globalAvg = globalRecolteWorkers > 0 ? (appData.globalProduction / globalRecolteWorkers).toFixed(2) : 0;
+        safeText('rend-global-avg', globalAvg + " Kg/P"); safeText('rend-serre-avg', avgPerSerre + " Kg/S"); safeText('rend-global-total', "TOTAL PRODUCTION : " + appData.globalProduction + " Kg");
+
+        let h_mo = 0, h_enc = 0, h_ops_totals = {}, hd_stats = {rec:0, deg:0, enc:0};
+        
+        let hdTeamsList = [];
+        appData.halfTeams.forEach(team => {
+            if(!team.ops) return;
+            let teamCount = 0; team.ops.forEach(op => teamCount += op.count);
+            if (teamCount === 0) return;
+            team.ops.forEach(op => {
+                const opName = (op.name || "").toLowerCase();
+                if (opName.includes("encadrement")) h_enc += op.count; else h_mo += op.count;
+                if (!h_ops_totals[op.name]) h_ops_totals[op.name] = 0; h_ops_totals[op.name] += op.count;
+                if (opName.includes("récolte")) hd_stats.rec += op.count; if (opName.includes("dégagement")) hd_stats.deg += op.count; if (opName.includes("encadrement")) hd_stats.enc += op.count;
+            });
+            let timeForSort = team.startT ? team.startT : "99:99"; 
+            let timeDisplay = team.startT ? team.startT : "--:--";
+            hdTeamsList.push({ sortKey: timeForSort, displayTime: timeDisplay, name: team.name, count: teamCount });
+        });
+        
+        hdTeamsList.sort((a, b) => a.sortKey.localeCompare(b.sortKey));
+        
+        hdTeamsList.forEach(t => {
+            hdCardListHtml += `<li class="hd-sum-item"><span>${t.displayTime} | ${t.name}</span> <span class="hd-sum-data">${t.count} Prs</span></li>`;
+        });
+        
+        let activeHdTeamsCount = appData.halfTeams.filter(t => t.ops && t.ops.reduce((a,b)=>a+b.count,0) > 0).length;
+        
+        // Update Main View Half-Day Card
+        safeText('hd-sum-count-main', activeHdTeamsCount); 
+        safeText('hd-sum-rec-main', hd_stats.rec); 
+        safeText('hd-sum-deg-main', hd_stats.deg); 
+        safeText('hd-sum-enc-main', hd_stats.enc);
+        safeHTML('hd-summary-list-main', hdCardListHtml || '<li style="text-align:center; color:var(--text-muted);">Aucune équipe</li>');
+
+        // Update Half View Half-Day Card
+        safeText('hd-sum-count-half', activeHdTeamsCount); 
+        safeText('hd-sum-rec-half', hd_stats.rec); 
+        safeText('hd-sum-deg-half', hd_stats.deg); 
+        safeText('hd-sum-enc-half', hd_stats.enc);
+        safeHTML('hd-summary-list-half', hdCardListHtml || '<li style="text-align:center; color:var(--text-muted);">Aucune équipe</li>');
+        
+        safeText('hd-grand-total-main', "TOTAL EFFECTIF : " + (h_enc + h_mo));
+        safeText('hd-grand-total-half', "TOTAL EFFECTIF : " + (h_enc + h_mo));
+
+        renderExtraInfoSummary();
+        return { full: s, half: { mo: h_mo, enc: h_enc, count: activeHdTeamsCount, ops: h_ops_totals }, header: appData.headerInfo, extra: appData.extraInfo, globalOps: globalOps, transportCounts: transportCounts, rendement: rendementData };
+    }
+
+    function saveAndCalc() { 
+        try { 
+            calculateStats(); 
+            localStorage.setItem('agri_draft_v12', JSON.stringify(appData)); 
+        } catch(e) { console.error("Save Error:", e); } 
+    }
+    
+    function calcDuration(start, end) { if(!start || !end) return null; const [h1,m1] = start.split(':').map(Number); const [h2,m2] = end.split(':').map(Number); let diff = (h2 + m2/60) - (h1 + m1/60); if(diff < 0) diff += 24; return diff.toFixed(1) + 'h'; }
+    function openNav() { document.getElementById("side-menu").style.width = "280px"; }
+    function closeNav() { document.getElementById("side-menu").style.width = "0"; }
+    function switchView(v) { document.querySelectorAll('.view-container').forEach(e => e.classList.remove('active')); document.getElementById('view-'+v).classList.add('active'); const h = document.getElementById('main-header'); if(v==='half') { h.classList.add('half-day-mode'); document.getElementById('header-title').innerText="Demi-Journée"; } else { h.classList.remove('half-day-mode'); document.getElementById('header-title').innerText="POINTAGE"; } closeNav(); }
+
+    function silentArchive(dateStr) { const stats = calculateStats(); try { const history = JSON.parse(localStorage.getItem('agri_history_v12') || "{}"); history[dateStr] = { stats, raw: JSON.parse(JSON.stringify(appData)) }; localStorage.setItem('agri_history_v12', JSON.stringify(history)); resetCountsOnly(); } catch(e) {} }
+    function saveDay() { if(!confirm("Clôturer la journée ?")) return; const stats = calculateStats(); const now = new Date(); const date = `${now.getDate().toString().padStart(2,'0')}/${(now.getMonth()+1).toString().padStart(2,'0')}/${now.getFullYear()}`; try { const history = JSON.parse(localStorage.getItem('agri_history_v12') || "{}"); history[date] = { stats, raw: JSON.parse(JSON.stringify(appData)) }; localStorage.setItem('agri_history_v12', JSON.stringify(history)); alert("✅ Sauvegardé : " + date); resetCountsOnly(); } catch(e) { alert("ERREUR CRITIQUE : Stockage impossible !"); } }
+    function resetCountsOnly() { 
+        for (const key in appData.inputs) { appData.inputs[key] = 0; } 
+        appData.teams.forEach(team => { 
+            if(team.ops) team.ops.forEach(op => { op.count = 0; }); 
+        }); 
+        appData.halfTeams.forEach(team => { 
+            team.startT = ''; team.endT = ''; if(team.ops) team.ops.forEach(op => { op.count = 0; }); 
+        }); 
+        appData.productionData = {}; appData.globalProduction = 0;
+        saveAndCalc(); renderIndividualInputs(); renderExtraInfoInputs(); renderExtraInfoSummary(); renderTeams('full'); renderTeams('half'); 
+    }
+    function clearData() { if(!confirm("⚠️ Attention: Cela effacera TOUT.")) return; appData = { headerInfo:{}, inputs: {}, teams: [], halfTeams: [], extraInfo: { transfers: [], strangers: [], hires: { ancien: 0, nouveau: 0, af: 0 } }, productionData: {}, copyrightText: "@hm.chb", globalProduction: 0, customLocations:[], includeHalfDayInRecap: false }; saveAndCalc(); renderHeaderInfo(); renderIndividualInputs(); renderExtraInfoInputs(); renderExtraInfoSummary(); renderTeams('full'); renderTeams('half'); }
+
+    function searchArchive() {
+        let val = document.getElementById('search-date').value.trim(); if(!val) return alert("Veuillez entrer une date.");
+        let parts = val.split(/[\/\-\.]/);
+        if(parts.length !== 3) return alert("Format invalide. Utilisez JJ/MM/AAAA");
+        let d = parts[0].padStart(2, '0'); let m = parts[1].padStart(2, '0'); let y = parts[2];
+        if(y.length === 2) y = "20" + y;
+        let formattedSearch = `${d}/${m}/${y}`;
+        
+        const history = JSON.parse(localStorage.getItem('agri_history_v12') || "{}");
+        if(history[formattedSearch]) { showReport(formattedSearch, history[formattedSearch]); } 
+        else { let keys = Object.keys(history).sort().reverse(); let msg = "Rapport non trouvé pour le : " + formattedSearch; if(keys.length > 0) msg += "\n\nDates disponibles :\n" + keys.slice(0, 10).join('\n'); else msg += "\n\n(L'archive est vide)"; alert(msg); }
+    }
+
+    function generateReportHTML(date, data) {
+        const raw = data.raw || {};
+        const s = (data.stats && data.stats.full) ? data.stats.full : { m_mo:0, m_ff:0, m_pf:0, m_gard:0, a_mo:0, a_enc:0 };
+        const h = (data.stats && data.stats.half) ? data.stats.half : { count:0, mo:0, enc:0 };
+        const hi = raw.headerInfo || {};
+        const ex = raw.extraInfo || { transfers:[], strangers:[], hires:{ancien:0,nouveau:0,af:0} };
+        const gOps = (data.stats && data.stats.globalOps) ? data.stats.globalOps : {};
+        const tCounts = (data.stats && data.stats.transportCounts) ? data.stats.transportCounts : {};
+        const total = (s.m_mo||0)+(s.m_ff||0)+(s.m_pf||0)+(s.m_gard||0)+(s.a_mo||0)+(s.a_enc||0);
+        
+        let transList = ex.transfers && ex.transfers.length ? ex.transfers.map(t=>`<li>${t}</li>`).join('') : '<li>-</li>';
+        let stranList = ex.strangers && ex.strangers.length ? ex.strangers.map(t=>`<li>${t}</li>`).join('') : '<li>-</li>';
+
+        let opsGrid = ""; let opsTotal = 0; for (const [key, val] of Object.entries(gOps)) { opsTotal += val; opsGrid += `<div class="rep-ops-item"><span>${key}</span><span>${val}</span></div>`; }
+        
+        let transportGrid = ""; const allTeams = [...(raw.teams || []), ...(raw.halfTeams || [])];
+        if(allTeams.length > 0) { allTeams.forEach(t => { 
+            const count = tCounts[t.name] || 0; 
+            const show = t.showInTransport !== undefined ? t.showInTransport : true;
+            if(count > 0 && show !== false) { 
+                const loc = t.depart ? t.depart : (t.startT ? t.startT : '-'); const tm = t.transportMode || 'transport'; let typeDisplay = ''; if(tm !== 'transport') typeDisplay = tm === 'secteur' ? '(SECTEUR)' : '(DOUAR)'; else typeDisplay = t.vehicleType || ''; 
+                transportGrid += `<div class="rep-team-card"><div class="rep-team-name"><span>${t.name}</span><span>${count}</span></div><div class="rep-team-detail">${typeDisplay} | ${t.matricule||'-'} | ${loc}</div></div>`; 
+            } 
+        }); }
+        if (transportGrid === "") transportGrid = '<div style="grid-column:1/-1;text-align:center;color:#ccc;">Aucune équipe</div>';
+        
+        const copyText = raw.copyrightText || "@hm.chb";
+        
+        return `<div class="report-wrapper"><div class="rep-header"><h2>${hi.societe||'SOCIÉTÉ'}</h2><p>${hi.company||''} - ${hi.domaine||''}</p><div class="rep-date">RAPPORT DU : ${date}</div></div><div class="rep-total-box">EFFECTIF TOTAL : ${total}</div><div class="rep-top-grid"><div class="rep-box"><div class="rep-box-title">RÉCAPITULATIF</div><div class="rep-box-content"><table class="rep-table"><tr><td>MAROC (MO)</td><td class="rep-val">${s.m_mo||0}</td></tr><tr><td>MAROC (FF)</td><td class="rep-val">${s.m_ff||0}</td></tr><tr><td>MAROC (PF)</td><td class="rep-val">${s.m_pf||0}</td></tr><tr><td>MAROC (Gardiens)</td><td class="rep-val">${s.m_gard||0}</td></tr><tr><td>AFRIQUE (MO)</td><td class="rep-val">${s.a_mo||0}</td></tr><tr><td>AFRIQUE (ENC)</td><td class="rep-val">${s.a_enc||0}</td></tr></table></div></div><div class="rep-box"><div class="rep-box-title">RH & MOUVEMENTS</div><div class="rep-box-content"><div class="rep-hr-group"><div class="rep-hr-label">EMBAUCHE</div><ul class="rep-hr-list"><li>Anc: ${ex.hires?.ancien||0}, Nouv: ${ex.hires?.nouveau||0}, AF: ${ex.hires?.af||0}</li></ul></div><div class="rep-hr-group"><div class="rep-hr-label">TRANSFERTS</div><ul class="rep-hr-list">${transList}</ul></div><div class="rep-hr-group"><div class="rep-hr-label">ETRANGERS</div><ul class="rep-hr-list">${stranList}</ul></div></div></div><div class="rep-box"><div class="rep-box-title">DEMI-JOURNÉE</div><div class="rep-box-content"><table class="rep-table"><tr><td>Nbr Équipes</td><td class="rep-val">${h.count||0}</td></tr><tr><td>Main d'Oeuvre</td><td class="rep-val">${h.mo||0}</td></tr><tr><td>Encadrement</td><td class="rep-val">${h.enc||0}</td></tr><tr><td>Total Pers.</td><td class="rep-val">${(h.enc||0)+(h.mo||0)}</td></tr></table></div></div></div><div class="rep-trans-title">DÉTAILS DES OPÉRATIONS (GLOBAL)</div><div class="rep-ops-grid">${opsGrid || '<div style="grid-column:1/-1;text-align:center;">Aucune opération</div>'}</div><div style="text-align:right; font-weight:bold; font-size:12px; margin-bottom:15px; padding-right:10px;">TOTAL OPÉRATIONS : ${opsTotal}</div><div class="rep-trans-title">DÉTAILS TRANSPORT & ÉQUIPES</div><div class="rep-trans-grid">${transportGrid}</div><div class="rep-footer">VBF 01 | Dev by ${copyText}</div></div>`;
+    }
+
+    function showReport(date, data) {
+        try {
+            const html = generateReportHTML(date, data);
+            document.getElementById('modal-title').innerText = "Rapport : " + date;
+            document.getElementById('modal-body-container').innerHTML = html;
+            document.getElementById('archiveModal').style.display = 'block';
+            closeNav();
+        } catch(e) {
+            alert("Erreur critique lors de l'affichage du rapport : " + e.message);
+        }
+    }
+
+    function downloadArchiveImage() { 
+        const content = document.getElementById('modal-body-container').innerHTML; 
+        const temp = document.getElementById('export-container'); 
+        temp.innerHTML = content; 
+        temp.setAttribute('data-theme', document.documentElement.getAttribute('data-theme'));
+        
+        html2canvas(temp, { scale: 2 }).then(canvas => { 
+            const link = document.createElement('a'); 
+            link.download = `Rapport.png`; link.href = canvas.toDataURL(); 
+            document.body.appendChild(link); link.click(); document.body.removeChild(link); 
+            temp.innerHTML = ''; 
+        }); 
+    }
+    
+    function downloadArchivePDF() { 
+        const content = document.getElementById('modal-body-container').innerHTML; 
+        const temp = document.getElementById('export-container'); 
+        temp.innerHTML = content; 
+        temp.setAttribute('data-theme', document.documentElement.getAttribute('data-theme'));
+        
+        const opt = { margin: 0.2, filename: `Rapport.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' } }; 
+        html2pdf().set(opt).from(temp).save().then(() => { temp.innerHTML = ''; }); 
+    }
+    
+    function exportData() { const d = localStorage.getItem('agri_history_v12'); if(!d) return alert('Vide'); const b = new Blob([d], {type:'application/json'}); const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = `Backup_${new Date().toISOString().slice(0,10)}.json`; document.body.appendChild(a); a.click(); document.body.removeChild(a); }
+    
+    function downloadCard(element) {
+        if(!confirm("Télécharger cette carte en image ?")) return;
+        const container = document.getElementById('temp-download-container'); container.innerHTML = '';
+        
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        if(currentTheme) container.setAttribute('data-theme', currentTheme);
+        else container.removeAttribute('data-theme');
+
+        const headerInfo = appData.headerInfo || {};
+        const dateStr = new Date().toLocaleDateString('fr-FR');
+        const copy = appData.copyrightText || "@hm.chb";
+        const headerDiv = document.createElement('div');
+        headerDiv.style.marginBottom = '15px';
+        const titleColor = currentTheme === 'dark' ? '#90a4ae' : '#546e7a';
+        headerDiv.innerHTML = `<h2 style="margin:0;color:${titleColor};text-transform:uppercase;">${headerInfo.societe || 'SOCIÉTÉ'}</h2><p style="margin:0;color:#8d6e63;font-size:0.9em;">${headerInfo.company || ''} - ${headerInfo.domaine || ''}</p><p style="margin:2px 0;font-size:0.85em;font-weight:bold;color:${titleColor}">${dateStr}</p><hr style="border:0;border-top:1px solid #ccc;margin:10px 0;">`;
+        container.appendChild(headerDiv);
+        const cardClone = element.cloneNode(true); 
+        const edits = cardClone.querySelectorAll('.team-edit-form, .btn-add, .op-delete, .team-remove, .team-actions');
+        edits.forEach(e => e.remove());
+        cardClone.style.margin = '0 auto'; cardClone.style.boxShadow = 'none'; container.appendChild(cardClone);
+        const footerDiv = document.createElement('div'); footerDiv.style.marginTop = '15px'; footerDiv.style.fontSize = '10px'; footerDiv.style.color = '#aaa'; footerDiv.innerHTML = `VBF 01 | Dev by ${copy}`; container.appendChild(footerDiv);
+        html2canvas(container).then(canvas => { const link = document.createElement('a'); link.download = 'carte-pointage.png'; link.href = canvas.toDataURL(); document.body.appendChild(link); link.click(); document.body.removeChild(link); });
+    }
+
+    init();
+</script>
+</body>
+</html>
